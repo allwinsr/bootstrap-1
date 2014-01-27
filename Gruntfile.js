@@ -21,6 +21,7 @@ module.exports = function (grunt) {
   var generateGlyphiconsData = require('./docs/grunt/bs-glyphicons-data-generator.js');
   var BsLessdocParser = require('./docs/grunt/bs-lessdoc-parser.js');
   var generateRawFilesJs = require('./docs/grunt/bs-raw-files-generator.js');
+  var takeSauceScreenshots = require('./test-infra/sauce-screenshots.js');
   var updateShrinkwrap = require('./test-infra/shrinkwrap.js');
 
   // Project configuration.
@@ -51,7 +52,7 @@ module.exports = function (grunt) {
         jshintrc: 'js/.jshintrc'
       },
       grunt: {
-        src: ['Gruntfile.js', 'docs/grunt/*.js', 'test-infra/shrinkwrap.js']
+        src: ['Gruntfile.js', 'docs/grunt/*.js', 'test-infra/*.js']
       },
       src: {
         src: 'js/*.js'
@@ -69,7 +70,7 @@ module.exports = function (grunt) {
         config: 'js/.jscs.json',
       },
       grunt: {
-        src: ['Gruntfile.js', 'docs/grunt/*.js', 'test-infra/shrinkwrap.js']
+        src: ['Gruntfile.js', 'docs/grunt/*.js', 'test-infra/*.js']
       },
       src: {
         src: 'js/*.js'
@@ -380,6 +381,7 @@ module.exports = function (grunt) {
       (!process.env.TWBS_TEST || process.env.TWBS_TEST === 'sauce-js-unit')) {
     testSubtasks.push('connect');
     testSubtasks.push('saucelabs-qunit');
+    testSubtasks.push('hocus-focus');
   }
   // Only run BrowserStack tests if there's a BrowserStack access key
   if (typeof process.env.BROWSERSTACK_KEY !== 'undefined' &&
@@ -422,4 +424,13 @@ module.exports = function (grunt) {
   // Task for updating the npm packages used by the Travis build.
   grunt.registerTask('update-shrinkwrap', ['exec:npmUpdate', 'exec:npmShrinkWrap', '_update-shrinkwrap']);
   grunt.registerTask('_update-shrinkwrap', function () { updateShrinkwrap.call(this, grunt); });
+
+  // Task for taking screenshots in browsers via Sauce.
+  grunt.registerTask('hocus-focus', function () {
+    takeSauceScreenshots.call(this, grunt, {
+      url: 'http://127.0.0.1:3000/js/tests/index.html',
+      destDir: './screenshots',
+      browsers: grunt.file.readYAML('./test-infra/sauce_browsers.yml')
+    });
+  });
 };
